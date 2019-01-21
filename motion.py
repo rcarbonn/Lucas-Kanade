@@ -40,6 +40,10 @@ def lucas_kanade(img1, img2, keypoints, window_size=5):
         y = int(round(y)); x = int(round(x))
 
         ### YOUR CODE HERE
+        ### The addition of np.eye in 'd' vector is to prevent singular matrix error
+        ### during matrix inversion. This error occurs when you run this code on videos
+        ### other than the one given in assignment. You can skip it for assignment.
+
         A = np.c_[Iy[y-w:y+w+1, x-w:x+w+1].flatten(), Ix[y-w:y+w+1, x-w:x+w+1].flatten()]
         b = -It[y-w:y+w+1, x-w:x+w+1].flatten()
         d = np.dot(np.linalg.inv(A.T.dot(A) + np.eye(A.shape[1])*1e-6), A.T.dot(b))
@@ -92,6 +96,10 @@ def iterative_lucas_kanade(img1, img2, keypoints,
 
         # TODO: Compute inverse of G at point (x1, y1)
         ### YOUR CODE HERE
+        
+        ###	This takes care of some corner cases when features are present
+        ### at the boundary of the image. Again, not required for assignment purposes.
+        ###--------------###
         if y1-w<=1:
             y1 = 1+w
         if x1-w<=1:
@@ -100,6 +108,7 @@ def iterative_lucas_kanade(img1, img2, keypoints,
             y1 = maxy-w-1
         if x1+w>=maxx:
             x1 = maxx-w-1
+        ###---------------###
         A = np.c_[Iy[y1-w:y1+w+1, x1-w:x1+w+1].flatten(), Ix[y1-w:y1+w+1, x1-w:x1+w+1].flatten()]
         G = A.T.dot(A)
         invG = np.linalg.inv(G + np.eye(A.shape[1])*1e-6)
@@ -123,7 +132,6 @@ def iterative_lucas_kanade(img1, img2, keypoints,
             
             # Ik = img1[y1,x1] - img2[y2,x2]  
             # bk = np.array([np.sum(Ik*A[:,1]), np.sum(Ik*A[:,0])])
-            #print(img1[y1-w:y1+w+1,x1-w:x1+w+1])
             Ik = (img1[y1-w:y1+w+1,x1-w:x1+w+1] - img2[y2-w:y2+w+1,x2-w:x2+w+1]).flatten()
             bk = np.array([Ik.dot(A[:,0]), Ik.dot(A[:,1])])
             vk = invG.dot(bk)
@@ -171,6 +179,8 @@ def pyramid_lucas_kanade(img1, img2, keypoints,
         Jl = pyramid2[L]
         pl = keypoints/(scale**L)
         d = iterative_lucas_kanade(Il, Jl, pl, window_size=window_size, num_iters=num_iters, g=g)
+        
+        ### Do not scale in the last iteration
         if L!=0:
             g = scale * (g + d)
     
@@ -277,6 +287,9 @@ def IoU(bbox1, bbox2):
     score = 0
 
     ### YOUR CODE HERE
+
+    ### IoU is given by intersection area of the two boxes divided by
+    ### Area of union of the two boxes
     a1 = w1*h1
     a2 = w2*h2
     xmin = max(x1,x2)
@@ -289,5 +302,3 @@ def IoU(bbox1, bbox2):
     ### END YOUR CODE
 
     return score
-
-
